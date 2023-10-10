@@ -20,7 +20,7 @@ public class PlayerCombat : MonoBehaviour
     private int maxHealth = 100;
     int currentHealth;
 
-    Void Start()
+    void Start()
     {
         currentHealth = maxHealth;
     }

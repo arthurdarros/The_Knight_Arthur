@@ -9,14 +9,24 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D rig;
     private Animator anim;
+    private TrailRenderer trailRenderer;
 
     public bool isJumping;
     public bool doubleJump;
+
+    [Header("Dashing")]
+    private float dashingVelocity = 5f;
+    private float dashingTime = 0.2f;
+    private Vector2 dashingDir;
+    private bool isDashing;
+    private bool canDash = true;
+
 
     void Start()
     {
         rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        trailRenderer = GetComponent<TrailRenderer>();
     }
 
    
@@ -24,6 +34,7 @@ public class Player : MonoBehaviour
     {
         Move();
         Jump();
+        Dash();
     }
     
     void Move()
@@ -67,6 +78,49 @@ public class Player : MonoBehaviour
                 }
             }
         }
+    }
+
+    void Dash()
+    {
+        var dashInput = Input.GetButtonDown("Dash");
+
+        if(dashInput && canDash)
+        {
+            isDashing = true;
+            canDash = false;
+            trailRenderer.emitting = true;
+            dashingDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            
+
+            if(dashingDir == Vector2.zero)
+            {
+                dashingDir = new Vector2(transform.localScale.x, 0);
+            }
+
+            //Add stopping dash
+            StartCoroutine(StopDashing());
+
+        }
+
+        anim.SetBool("isDashing", isDashing);
+
+        if (isDashing)
+        {
+            rig.velocity = dashingDir.normalized * dashingVelocity;
+            return;
+        }
+
+        if (isJumping == false)
+        {
+            canDash = true;
+        }
+    }
+
+    private IEnumerator StopDashing()
+    {
+        yield return new WaitForSeconds(dashingTime);
+        trailRenderer.emitting = false;
+        isDashing = false;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
