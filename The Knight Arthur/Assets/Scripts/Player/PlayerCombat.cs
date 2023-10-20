@@ -5,20 +5,22 @@ using UnityEngine;
 public class PlayerCombat : MonoBehaviour
 {
 
-    public Animator animator;
-
-    public Transform attackPoint;
-
-    public LayerMask enemyLayers;
-
+    [Header ("Attack Parameters")]
     private float attackRange = 0.5f;
     private int attackDamage = 25;
-    
     private float attackRate = 2f;
     private float nextAttackTime = 0f;
 
+    [Header ("Health Components")]
     private int maxHealth = 100;
     int currentHealth;
+
+    [Header ("Attack Sound")]
+    [SerializeField] private AudioClip attackSound;
+
+    public Animator animator;
+    public Transform attackPoint;
+    public LayerMask enemyLayers;
 
     void Start()
     {
@@ -42,6 +44,7 @@ public class PlayerCombat : MonoBehaviour
     {
         //Play an attack animation
         animator.SetTrigger("Attack");
+        SoundManager.instance.PlaySound(attackSound);
         //Detect enemies in range of attack
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
         //Damage them
