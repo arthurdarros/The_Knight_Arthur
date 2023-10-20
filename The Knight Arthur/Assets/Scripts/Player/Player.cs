@@ -4,23 +4,32 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float speed;
-    public float jumpForce;
+    [Header ("Movement Parameters")]
+    [SerializeField]private float speed;
+    [SerializeField]private float jumpForce;
+    
+    [Header("Jumping")]
+    [SerializeField] private bool isJumping;
 
-    private Rigidbody2D rig;
-    private Animator anim;
-    private TrailRenderer trailRenderer;
 
-    public bool isJumping;
-    public bool doubleJump;
-
-    [Header("Dashing")]
-    private float dashingVelocity = 5f;
-    private float dashingTime = 0.2f;
+    [Header("Dashing Parameters")]
+    [SerializeField]private float dashingVelocity = 5f;
+    [SerializeField]private float dashingTime = 0.2f;
     private Vector2 dashingDir;
     private bool isDashing;
     private bool canDash = true;
 
+    [Header("Iframes Dashings")]
+    [SerializeField] private float iFramesDuration;
+    [SerializeField] private int numberOfFlashes;
+    private SpriteRenderer spriteRend;
+
+    [Header ("SFX")]
+    [SerializeField] private AudioClip jumpSound;
+
+    private Rigidbody2D rig;
+    private Animator anim;
+    private TrailRenderer trailRenderer;
 
     void Start()
     {
@@ -66,16 +75,8 @@ public class Player : MonoBehaviour
             if(!isJumping)
             {
                 rig.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
-                doubleJump = true;
                 anim.SetBool("jump", true);
-            }
-            else
-            {
-                if(doubleJump)
-                {
-                    rig.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
-                    doubleJump = false;
-                }
+                SoundManager.instance.PlaySound(jumpSound);
             }
         }
     }
@@ -90,7 +91,7 @@ public class Player : MonoBehaviour
             canDash = false;
             trailRenderer.emitting = true;
             dashingDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            
+            StartCoroutine(DashIframe());
 
             if(dashingDir == Vector2.zero)
             {
@@ -98,6 +99,7 @@ public class Player : MonoBehaviour
             }
 
             //Add stopping dash
+
             StartCoroutine(StopDashing());
 
         }
@@ -123,9 +125,20 @@ public class Player : MonoBehaviour
         isDashing = false;
     }
 
+    private IEnumerator DashIframe()
+    {
+        Physics2D.IgnoreLayerCollision(8, 10, true);
+        for (int i = 0; i < numberOfFlashes; i++)
+        {
+            yield return new WaitForSeconds(iFramesDuration / (numberOfFlashes * 2));
+            yield return new WaitForSeconds(iFramesDuration / (numberOfFlashes * 2));
+        }
+        Physics2D.IgnoreLayerCollision(8, 10, false);
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.layer == 8)
+        if(collision.gameObject.layer == 7)
         {
             isJumping = false;
             anim.SetBool("jump", false);
@@ -134,7 +147,7 @@ public class Player : MonoBehaviour
 
     void OnCollisionExit2D(Collision2D collision)
     {
-        if(collision.gameObject.layer == 8)
+        if(collision.gameObject.layer == 7)
         {
             isJumping = true;
         }
