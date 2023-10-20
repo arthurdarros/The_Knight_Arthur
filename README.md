@@ -1,2 +1,2 @@
 # The_Knight_Arthur
-Projeto de Jogo 2D para trabalho da faculdade
+Project to learn and increase skill and mechanics implementation in Unity and C#
